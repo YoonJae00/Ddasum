@@ -1,6 +1,7 @@
 // 파일: app/screens/GroupBuyScreen.tsx
 import React, { useRef, useState, useEffect } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, FlatList, Image, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const BANNER_HEIGHT = width * 0.8 * 0.5; // 80% 너비, 0.5 비율
@@ -14,20 +15,22 @@ const banners = [
 const categories = ['산지직송', '동네간식', '공방마켓', '따숨 기획전'];
 
 interface ProductItem {
-  id: string;
-  title: string;
-  price: string;
-  unit: string;
-  image: { uri: string };
-  location: string;
-  delivery: string;
-  rating: number;
-  review: number;
-  badge?: string;
-  total: number; // 총 모집 인원
-  current: number; // 현재 인원
+  id: string; // 상품 고유 ID
+  title: string; // 상품명 (예: '전남 고흥 | 딸기')
+  price: string; // 가격 (예: '12,900원')
+  unit: string; // 단위 (예: '(100g 당)')
+  image: { uri: string }; // 상품 이미지 URL 객체
+  location: string; // 산지/지역 정보 (예: '전남 고흥')
+  delivery: string; // 배송 정보 (예: '무료배송')
+  rating: number; // 별점 (예: 4.5)
+  review: number; // 리뷰 개수 (예: 245)
+  badge?: boolean; // 뱃지 여부 (예: '따숨Pick' 등, true/false로도 사용)
+  total: number; // 총 모집 인원 (공동구매 목표 인원)
+  current: number; // 현재 참여 인원
 }
 
+
+// 가대이터
 const dummyProducts: ProductItem[] = Array.from({ length: 10 }).map((_, idx) => ({
   id: `${idx}`,
   title: `전남 고흥 | 딸기`,
@@ -46,6 +49,7 @@ const dummyProducts: ProductItem[] = Array.from({ length: 10 }).map((_, idx) => 
 export default function GroupBuyScreen() {
   const [currentBanner, setCurrentBanner] = useState(0);
   const carouselRef = useRef<FlatList>(null);
+  const navigation = useNavigation();
 
   const onViewRef = useRef(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
@@ -131,7 +135,11 @@ export default function GroupBuyScreen() {
             const percent = Math.round((item.current / item.total) * 100);
             const remain = item.total - item.current;
             return (
-              <TouchableOpacity style={styles.productCard} key={item.id}>
+              <TouchableOpacity
+                style={styles.productCard}
+                key={item.id}
+                onPress={() => navigation.navigate('GroupBuyDetail', { product: item })}
+              >
                 <Image source={item.image} style={styles.productImage} />
                 <View style={styles.productInfo}>
                   <Text style={styles.productLocation}>{item.location}</Text>

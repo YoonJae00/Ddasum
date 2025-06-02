@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 // 스크린 컴포넌트
 import HomeScreen from './screens/HomeScreen';
 import LocalJobsScreen from './screens/LocalJobsScreen';
-import GroupBuyScreen from './screens/GroupBuyScreen';
+import GroupBuyStack from './screens/GroupBuyStack';
 import SubsidyScreen from './screens/SubsidyScreen';
 import MyDdasumScreen from './screens/MyDdasumScreen';
 
@@ -95,7 +95,7 @@ export default function App() {
             {() => (
               <>
                 <AppHeader />
-                <GroupBuyScreen />
+                <GroupBuyStack />
               </>
             )}
           </Tab.Screen>
