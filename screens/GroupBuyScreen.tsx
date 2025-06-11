@@ -30,7 +30,7 @@ interface ProductItem {
 }
 
 
-// 가대이터
+// 가상 데이터
 const dummyProducts: ProductItem[] = Array.from({ length: 10 }).map((_, idx) => ({
   id: `${idx}`,
   title: `전남 고흥 | 딸기`,
