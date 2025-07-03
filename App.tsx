@@ -1,41 +1,22 @@
 // 파일: app/index.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
-import { NavigationContainer, useNavigationState } from '@react-navigation/native';
+import { NavigationContainer, useNavigationState, useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 
 // 스크린 컴포넌트
 import HomeScreen from './screens/HomeScreen';
 import LocalJobsScreen from './screens/LocalJobsScreen';
+import LocalJobsStack from './screens/LocalJobsStack';
 import GroupBuyStack from './screens/GroupBuyStack';
 import SubsidyScreen from './screens/SubsidyScreen';
 import MyDdasumScreen from './screens/MyDdasumScreen';
 
 const Tab = createBottomTabNavigator();
 
-// 공통 헤더 컴포넌트
-function AppHeader() {
-  const routes = useNavigationState(state => state.routeNames);
-  const index = useNavigationState(state => state.index);
-  const current = routes[index];
-  // 라벨 매핑
-  const titles: Record<string, string> = {
-    Home: '홈',
-    LocalJobs: '동네알바',
-    GroupBuy: '공동구매',
-    Subsidy: '지원금',
-    MyDdasum: '마이따숨',
-  };
-  return (
-    <View style={styles.header}>
-      <Text style={styles.headerTitle}>{titles[current]}</Text>
-      <TouchableOpacity>
-        <Ionicons name="notifications-outline" size={24} color="#fff" />
-      </TouchableOpacity>
-    </View>
-  );
-}
+import AppHeader from './components/AppHeader';
+
 
 export default function App() {
   return (
@@ -70,18 +51,13 @@ export default function App() {
           <Tab.Screen
             name="LocalJobs"
             options={{
-              title: '동네알바',
+              title: '일자리',
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="briefcase-outline" size={size} color={color} />
               ),
             }}
           >
-            {() => (
-              <>
-                <AppHeader />
-                <LocalJobsScreen />
-              </>
-            )}
+            {() => <LocalJobsStack />}
           </Tab.Screen>
           <Tab.Screen
             name="GroupBuy"
@@ -138,16 +114,18 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FF6F61' },
+  safeArea: { flex: 1, backgroundColor: '#fff' },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FF6F61',
+    paddingVertical: 14,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
+  headerTitle: { fontSize: 19, fontWeight: 'bold', color: '#222' },
 });
 
 /*
