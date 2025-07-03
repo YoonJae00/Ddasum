@@ -49,7 +49,7 @@ export default function AppHeader({ routeName }: AppHeaderProps) {
             </TouchableOpacity>
             <TouchableOpacity
               style={{ marginHorizontal: 6 }}
-              onPress={() => navigation.navigate('ChatRoom')}
+              onPress={() => navigation.navigate('ChatStack')}
             >
               <Ionicons name="chatbubble-ellipses-outline" size={22} color="#222" />
             </TouchableOpacity>

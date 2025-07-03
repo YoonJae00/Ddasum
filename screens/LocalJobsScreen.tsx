@@ -10,7 +10,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import JobFilterModal from '../components/JobFilterModal'; // 경로에 맞게 import
 import AppHeader from '../components/AppHeader';
 
@@ -80,8 +80,11 @@ const neighborJobs: JobItem[] = Array.from({ length: 4 }).map((_, idx) => ({
 
 export default function LocalJobsScreen() {
   const route = useRoute();
+  const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState<'local' | 'neighbor' | 'public'>('local');
   const [filterVisible, setFilterVisible] = useState(false);
+  const [pressedId, setPressedId] = useState<string | null>(null);
+
   let jobs: JobItem[] = [];
   if (selectedTab === 'local') jobs = localJobs;
   else if (selectedTab === 'neighbor') jobs = neighborJobs;
@@ -141,7 +144,23 @@ export default function LocalJobsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={[
+              styles.card,
+              pressedId === item.id && selectedTab === 'local' && { borderColor: '#FF6F61', borderWidth: 2 }
+            ]}
+            activeOpacity={0.85}
+            onPress={() => {
+              if (selectedTab === 'local') {
+                navigation.navigate('JobDetail', { ...item });
+              } else if (selectedTab === 'neighbor') {
+                navigation.navigate('NeighborDetail', { ...item });
+              }
+              // 공공 일자리는 별도 상세페이지가 필요하면 else if 추가
+            }}
+            onPressIn={() => setPressedId(item.id)}
+            onPressOut={() => setPressedId(null)}
+          >
             <View style={styles.cardContent}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardCompany}>{item.company}</Text>

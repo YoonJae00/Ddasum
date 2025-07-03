@@ -2,7 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import GroupBuyScreen from './GroupBuyScreen';
 import GroupBuyDetailScreen from './GroupBuyDetailScreen';
-import ChatRoom from '../components/ChatRoom'; // ChatRoom 컴포넌트 import
+import ChatRoom from './chat/ChatRoom'; // ChatRoom 컴포넌트 import
 
 
 const Stack = createStackNavigator();

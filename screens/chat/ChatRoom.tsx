@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Image, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 interface Message {
   id: string;
@@ -22,6 +24,7 @@ function getCurrentDateTime() {
 }
 
 export default function ChatRoom({ route }) {
+  const navigation = useNavigation();
   const roomTitle = route.params?.roomTitle || '채팅방';
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -38,6 +41,9 @@ export default function ChatRoom({ route }) {
   // 이미지 확대 모달 상태
   const [modalVisible, setModalVisible] = useState(false);
   const [modalImageUri, setModalImageUri] = useState<string | null>(null);
+
+  // 메뉴 토스트바 상태
+  const [menuVisible, setMenuVisible] = useState(false);
 
   // 사진/동영상 첨부 (한 번에 둘 다 선택 가능)
   const pickMedia = async () => {
@@ -95,94 +101,126 @@ export default function ChatRoom({ route }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#FFF8F6' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 44 : 0}
-    >
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ flex: 1 }}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>{roomTitle}</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF8F6' }}>
+      <View style={{ flex: 1 }}>
+        {/* 상단바 */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerLeft} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={26} color="#222" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle} numberOfLines={1}>{roomTitle}</Text>
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={() => {/* 검색 기능 구현 */}}>
+              <Ionicons name="search" size={22} color="#222" style={{ marginRight: 12 }} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setMenuVisible(true)}>
+              <Feather name="more-vertical" size={22} color="#222" />
+            </TouchableOpacity>
           </View>
-          <FlatList
-            ref={flatListRef}
-            data={renderMessages()}
-            keyExtractor={item => item.key}
-            renderItem={({ item }) => {
-              if (item.type === 'date') {
-                return (
-                  <View style={styles.dateDivider}>
-                    <Text style={styles.dateDividerText}>{item.date}</Text>
-                  </View>
-                );
-              }
-              const isMe = item.isMe;
+        </View>
+
+        {/* 메뉴 토스트바 */}
+        <Modal
+          visible={menuVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setMenuVisible(false)}
+        >
+          <Pressable style={styles.menuBackdrop} onPress={() => setMenuVisible(false)}>
+            <View style={styles.menuToast}>
+              <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); /* 신고 기능 */ }}>
+                <Text style={styles.menuText}>신고하기</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); /* 채팅방 나가기 */ }}>
+                <Text style={styles.menuText}>채팅방 나가기</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Modal>
+
+        <FlatList
+          ref={flatListRef}
+          data={renderMessages()}
+          keyExtractor={item => item.key}
+          renderItem={({ item }) => {
+            if (item.type === 'date') {
               return (
-                <View style={[
-                  styles.bubble,
-                  isMe ? styles.myBubble : styles.otherBubble
-                ]}>
-                  {/* 이미지 메시지 */}
-                  {item.imageUri && (
-                    <TouchableOpacity
-                      activeOpacity={0.85}
-                      onPress={() => {
-                        setModalImageUri(item.imageUri);
-                        setModalVisible(true);
-                      }}
-                    >
-                      <Image source={{ uri: item.imageUri }} style={styles.media} />
-                    </TouchableOpacity>
-                  )}
-                  {/* 동영상 메시지 (썸네일만, 실제 재생은 별도 구현 필요) */}
-                  {item.videoUri && (
-                    <View style={styles.mediaVideo}>
-                      <Text style={{ color: '#888', fontSize: 13 }}>동영상 첨부됨</Text>
-                    </View>
-                  )}
-                  {/* 텍스트 메시지 */}
-                  {item.text && (
-                    <Text style={isMe ? styles.myText : styles.otherText}>{item.text}</Text>
-                  )}
-                  <View style={styles.metaRow}>
-                    <Text style={[
-                      styles.timeText,
-                      isMe && { color: '#fff', opacity: 0.8 }
-                    ]}>{item.time}</Text>
-                    {isMe && (
-                      <Text style={[
-                        styles.readText,
-                        { color: '#fff', opacity: 0.7 }
-                      ]}>
-                        {item.read ? '읽음' : '전송됨'}
-                      </Text>
-                    )}
-                  </View>
+                <View style={styles.dateDivider}>
+                  <Text style={styles.dateDividerText}>{item.date}</Text>
                 </View>
               );
-            }}
-            contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-            showsVerticalScrollIndicator={false}
-          />
+            }
+            const isMe = item.isMe;
+            return (
+              <View style={[
+                styles.bubble,
+                isMe ? styles.myBubble : styles.otherBubble
+              ]}>
+                {/* 이미지 메시지 */}
+                {item.imageUri && (
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => {
+                      setModalImageUri(item.imageUri);
+                      setModalVisible(true);
+                    }}
+                  >
+                    <Image source={{ uri: item.imageUri }} style={styles.media} />
+                  </TouchableOpacity>
+                )}
+                {/* 동영상 메시지 (썸네일만, 실제 재생은 별도 구현 필요) */}
+                {item.videoUri && (
+                  <View style={styles.mediaVideo}>
+                    <Text style={{ color: '#888', fontSize: 13 }}>동영상 첨부됨</Text>
+                  </View>
+                )}
+                {/* 텍스트 메시지 */}
+                {item.text && (
+                  <Text style={isMe ? styles.myText : styles.otherText}>{item.text}</Text>
+                )}
+                <View style={styles.metaRow}>
+                  <Text style={[
+                    styles.timeText,
+                    isMe && { color: '#fff', opacity: 0.8 }
+                  ]}>{item.time}</Text>
+                  {isMe && (
+                    <Text style={[
+                      styles.readText,
+                      { color: '#fff', opacity: 0.7 }
+                    ]}>
+                      {item.read ? '읽음' : '전송됨'}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            );
+          }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+          showsVerticalScrollIndicator={false}
+        />
 
-          {/* 이미지 확대 모달 */}
-          <Modal
-            visible={modalVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setModalVisible(false)}
-          >
-            <Pressable style={styles.modalBackdrop} onPress={() => setModalVisible(false)}>
-              <Image
-                source={{ uri: modalImageUri ?? undefined }}
-                style={styles.modalImage}
-                resizeMode="contain"
-              />
-            </Pressable>
-          </Modal>
+        {/* 이미지 확대 모달 */}
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <Pressable style={styles.modalBackdrop} onPress={() => setModalVisible(false)}>
+            <Image
+              source={{ uri: modalImageUri ?? undefined }}
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+          </Pressable>
+        </Modal>
 
-          <View style={styles.inputRow}>
+        {/* 입력창 */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 44 : 0}
+        >
+          <View style={[styles.inputRow, { marginBottom: Platform.OS === 'ios' ? 12 : 8 }]}>
             {/* 첨부파일 버튼 (+ 아이콘) */}
             <TouchableOpacity style={styles.attachBtn} onPress={pickMedia}>
               <Text style={styles.attachIcon}>＋</Text>
@@ -194,14 +232,15 @@ export default function ChatRoom({ route }) {
               placeholder="메시지를 입력하세요"
               returnKeyType="send"
               onSubmitEditing={sendMessage}
+              blurOnSubmit={false}
             />
             <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}>
               <Text style={styles.sendBtnText}>전송</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -209,13 +248,57 @@ const styles = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: '#FFF8F6' },
   header: {
     height: 54,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 0.5,
     borderBottomColor: '#eee',
     backgroundColor: '#fff',
+    paddingHorizontal: 8,
   },
-  headerTitle: { fontSize: 17, fontWeight: 'bold', color: '#222' },
+  headerLeft: {
+    width: 36,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: '#222',
+    textAlign: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 60,
+    justifyContent: 'flex-end',
+  },
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.12)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+  },
+  menuToast: {
+    marginTop: 54,
+    marginRight: 12,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 6,
+    width: 150,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  menuItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+  },
+  menuText: {
+    fontSize: 15,
+    color: '#222',
+  },
   dateDivider: {
     alignSelf: 'center',
     backgroundColor: '#FFE1DB',
